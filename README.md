@@ -13,8 +13,8 @@ You can take any valid unix group and perform one or multiple of the following o
 
 Example:
 ```
-declared_groups:
-  white_knights:
+declared_groups: 
+  white_knights: 
     groups:
       - ids
     whitelist:
@@ -27,9 +27,70 @@ declared_groups:
 ```
 The virtual group 'white_knights' can further be used in the associations section, as if it was a regular unix group.
 
+## Full Specification by example
+
+```
+declared_groups: # Optional
+  my_virtual_group:
+    groups:
+      - <group_name_1> 
+    whitelist:
+      - <group_name_2> 
+      - <group_name_3> 
+    add_users:
+      - <user_name_1>
+      - <user_name_2>
+    exclude_users:
+      - <user_name_3>
+    
+
+defaults:
+  cluster: ids-tks-gpu-cluster # Do not change! Required! Has to match entry inslurm.conf
+  organization: fzi # Required but arbitrary
+  groups: #Optional
+    my_virtual_group:
+      account: platsch
+  users: #Optional
+    <some_user_name>:
+       accounts: tks
+
+accounts: # Required, be hierarchical by specifying a parent
+  cool_kids:
+    description: Some # Required
+    <...limits, see SLURMs documentation>
+  tks:
+    description: General TKS account
+    parent: cool_kids
+    fairshare: 1 # Optional
+    ... further limits (see SLURM documentation)
+  ids:
+    description: General IDS account
+    parent: cool_kids
+    fairshare: 5 # Optional
+  blubb: # has no parent => SLURM's top-level account 'root' is parent
+    description: General IDS account
+    fairshare: 3 # Optional
+  platsch:
+    description: Yeah...
+
+associations:
+  <some_association_name>:
+    account: blubb
+    groups:
+      - my_virtual_group # virtual group
+      - tks              # actual unix group
+    fairshare: 55 # optional
+    <... more limits, see SLURM documentation>
+
+```
+
 # Usage
+By default the accounts.yml has to reside in the same folder as the main.py.
+If users have been added or removed on your machine, you need to re-run this script again to inform SLURM about the differences. 
 
 run ``` python main.py ``` to do a dry run (which is the default)
 
 Options:
 - '-e' or '--execute' to let the scripts do the SLURM calls.
+- '-f' or '--file' to specify the full path of your config YAML file.
+

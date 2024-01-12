@@ -56,13 +56,14 @@ defaults:
 
 accounts: # Required, be hierarchical by specifying a parent
   cool_kids:
-    description: Some # Required
-    <...limits, see SLURMs documentation>
+    description: # Required
+    parent: 'root' # Optional, default is always 'root'
+    <... optional limits, see SLURMs documentation>
   tks:
     description: General TKS account
     parent: cool_kids
     fairshare: 1 # Optional
-    ... further limits (see SLURM documentation)
+    <... optional limits, see SLURMs documentation>
   ids:
     description: General IDS account
     parent: cool_kids
@@ -80,7 +81,7 @@ associations:
       - my_virtual_group # virtual group
       - tks              # actual unix group
     fairshare: 55 # optional
-    <... more limits, see SLURM documentation>
+    <... optional limits, see SLURMs documentation>
 
 ```
 

@@ -1,6 +1,7 @@
 # About
 This tool helps synchronizing users from UNIX user groups with SLURM 'associations', which are tuples of (user, account, partition, cluster) with SLURM's database. 
 
+
 # accounts.yml
 You need to define general accounts (SLURM's unit of accounting for statistics of resource usage etc.) and assign groups to them. The tool will then expand the group names by the information it gets by running ``` getent groups ``` and creates for each implicitly specified user the required SLURM associations. 
 
@@ -27,6 +28,14 @@ declared_groups:
 ```
 The virtual group 'white_knights' can further be used in the associations section, as if it was a regular unix group.
 
+## Default Accounts
+Each specified user (either by name, by groups or set-operations on multiple groups) will get an user-account (accountname=username) and this will also be the defaultaccount (SLURM requires each user to have one) unless specified otherwise in the defaults section in the accounts.yml. o
+
+As one user can be contained in multiple associations/groups, this tool decides which account to use as a default in the following order according to the accounts.yml:
+
+1. defaults/users/<username> (if defined)
+2. defaults/groups/<group_name>/account/<account_name>. As there could be multiple matches, we simply choose the first one in the array where a specific user is member of (the group <group_name>). 
+
 ## Full Specification by example
 
 ```
@@ -52,7 +61,7 @@ defaults:
       account: platsch
   users: #Optional
     <some_user_name>:
-       accounts: tks
+       account: tks
 
 accounts: # Required, be hierarchical by specifying a parent
   cool_kids:
@@ -95,3 +104,6 @@ Options:
 - '-e' or '--execute' to let the scripts do the SLURM calls.
 - '-f' or '--file' to specify the full path of your config YAML file.
 
+
+### LICENSE
+MS: To be discussed, this work has been started/created mainly (3/4 of the consumed time) as a private project and I'd like to open-source it under the Apache 2.0 license at some point. Similar tools do exist but I have not found one that has all the features as contained in this project.

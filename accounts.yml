@@ -1,0 +1,70 @@
+---
+# The order in which limits are enforced is
+
+#     Partition QOS limit
+#     Job QOS limit
+#     User association
+#     Account association(s), ascending the hierarchy
+#     Root/Cluster association
+#     Partition limit
+
+declared_groups:
+  white_knights:
+    groups:
+      - ids
+    whitelist:
+      - slurm_users
+    # add_users:
+    # exclude_users:
+    #   - schulze
+
+defaults:
+  cluster: ids-tks-gpu-cluster # Do not change!
+  organization: fzi
+  groups:
+    # slurm_users:
+    #   account: blubb
+    white_knights:
+      account: platsch
+  # users:
+  #  schulze:
+  #     accounts: tks
+
+accounts:
+  debug_account:
+    description: General IDS/TKS account
+    fairshare: 1
+  tks:
+    description: General IDS/TKS account
+    fairshare: 1
+  ids:
+    description: General IDS account
+  blubb:
+    description: General IDS account
+  platsch:
+    description: Yeah...
+
+associations:
+  # debug_association:
+  #   account: debug_account
+  #   partition: debug
+  #   groups:
+  #     - slurm_users
+  #   fairshare: 1
+
+  # tks_association:
+  #   account: tks
+  #   partition: debug
+  #   groups:
+  #     - slurm_users
+  #   fairshare: 1
+
+  blubb_assoc:
+    account: blubb
+    groups:
+      - slurm_users
+
+  white_knight_assoc:
+    account: platsch
+    groups:
+      - white_knights

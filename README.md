@@ -40,27 +40,27 @@ As one user can be contained in multiple associations/groups, this tool decides 
 
 ```
 declared_groups: # Optional
-  my_virtual_group:
+  my_virtual_group: # arbitrary name but can't be that of an existing unix group
     groups:
-      - <group_name_1> 
+      - <group_name_1> # unix group(s)
     whitelist:
-      - <group_name_2> 
+      - <group_name_2> # unix group(s)
       - <group_name_3> 
     add_users:
-      - <user_name_1>
+      - <user_name_1>  # unix user(s)
       - <user_name_2>
     exclude_users:
-      - <user_name_3>
+      - <user_name_3>  # unix user(s)
     
 
 defaults:
   cluster: ids-tks-gpu-cluster # Do not change! Required! Has to match entry inslurm.conf
   organization: fzi # Required but arbitrary
   groups: #Optional
-    my_virtual_group:
-      account: platsch
+    my_virtual_group:  # unix group or virtual group
+      account: platsch # account as specified in the 'accounts' section
   users: #Optional
-    <some_user_name>:
+    <some_user_name>: # unix user name
        account: tks
 
 accounts: # Required, be hierarchical by specifying a parent
@@ -84,12 +84,12 @@ accounts: # Required, be hierarchical by specifying a parent
     description: Yeah...
 
 associations:
-  <some_association_name>:
-    account: blubb
-    groups:
+  <some_association_name>: # arbitrary name, not used internally for anything
+    account: blubb  # account from 'accounts' section
+    groups:  # unix group(s) and/or virtual group(s)
       - my_virtual_group # virtual group
       - tks              # actual unix group
-    fairshare: 55 # optional
+    fairshare: 55 # optional, see SLURM documentation
     <... optional limits, see SLURMs documentation>
 
 ```

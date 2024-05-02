@@ -7,6 +7,10 @@ logger = logging.getLogger(__name__)
 
 def check_association_entries(config: dict) -> None:
     assoc_section = config["associations"]
+
+    if assoc_section is None:
+        return
+
     for assoc_name, assoc_entry in assoc_section.items():
         if not "account" in assoc_entry:
             raise Exception(f"Association '{assoc_name}' is missing the key 'account'")

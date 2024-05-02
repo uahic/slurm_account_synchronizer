@@ -7,7 +7,7 @@ from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_VALUES = {"qos": "normal", "fairshare": 1}
+DEFAULT_VALUES = {"fairshare": 1}
 
 
 @dataclass()
@@ -83,6 +83,9 @@ def user_associations_from_config(
     assoc_section = config["associations"]
     associations = []
 
+    if assoc_section is None:
+        return []
+
     for _, assoc_entry in assoc_section.items():
         groups = assoc_entry.get("groups") or []
         users = groups_to_users(groups, unix_group_map)
@@ -122,6 +125,11 @@ def create_association(assoc: Association, dry_run=False) -> None:
         cmd += f" cluster={assoc.cluster}"
     if assoc.partition:
         cmd += f" partition={assoc.partition}"
+
+    assoc_settings = assoc.get_settings()
+    for t in assoc_settings:
+        if getattr(assoc, t[0])!=None:
+            cmd += f" {t[0]}={t[1]}"
     result = execute_command(cmd, dry_run=dry_run)
 
 

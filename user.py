@@ -87,7 +87,8 @@ def get_removable_users(users: List[User]) -> List[str]:
     existing_user_map = get_existing_users()
     existing_usr_set = set(existing_user_map.keys())
     removable_user_names = existing_usr_set.difference(map(lambda x: x.user, users))
-    removable_user_names.remove("root")
+    if ("root" in removable_user_names):
+        removable_user_names.remove("root")
     return removable_user_names
 
 

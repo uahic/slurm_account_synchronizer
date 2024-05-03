@@ -12,7 +12,8 @@ from accounts import (
     accounts_from_config,
     add_user_accounts,
     delete_unused_accounts,
-    create_or_modify_accounts,
+    create_accounts,
+    modify_accounts
 )
 
 from associations import (
@@ -59,13 +60,13 @@ def synchronize(config: dict, dry_run=True):
     logger.info("[Running sanity checks]")
     sanity_checks(config, assocs, association_map, users)
 
-    logger.info("[Create and modify accounts]")
+    logger.info("[Create missing accounts]")
     cfg_accounts = accounts_from_config(config)
     add_user_accounts(users, cfg_accounts, config)
-    create_or_modify_accounts(cfg_accounts, dry_run=dry_run)
+    create_accounts(cfg_accounts, dry_run=dry_run)
 
-    logger.info("[Create and modify users]")
-    create_users(users, dry_run=dry_run)
+    #logger.info("[Create and modify users]")
+    #create_users(users, dry_run=dry_run)
 
     logger.info("[Create Associations]")
     create_associations(assocs, prev_assocs, dry_run=dry_run)
@@ -81,6 +82,9 @@ def synchronize(config: dict, dry_run=True):
 
     logger.info("[Delete unused accounts]")
     delete_unused_accounts(cfg_accounts, dry_run=dry_run)
+
+    logger.info("[modify existing accounts]")
+    modify_accounts(cfg_accounts, dry_run=dry_run)
 
 
 def setup_logger() -> None:

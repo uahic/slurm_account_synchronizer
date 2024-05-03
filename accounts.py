@@ -8,8 +8,8 @@ from user import User
 logger = logging.getLogger(__name__)
 
 # All other values not listed here have a reset value of '-1'
-RESET_VALUES = {"parent": "root", "qoslevel": "", "organization": ""}
-DEFAULT_VALUES = {"parent": "root", "qoslevel": "normal", "fairshare": 1}
+RESET_VALUES = {"parent": "root", "qos":"", "organization": ""}
+DEFAULT_VALUES = {"parent": "root", "qos":"", "fairshare": 1}
 
 
 @dataclass(frozen=False)
@@ -36,7 +36,7 @@ class Account:
     maxwall: str = None
     organization: str = None
     priority: str = None
-    qoslevel: str = None
+    qos: str = None
 
     def __post_init__(self) -> None:
         # Convert everything except Nones to lowercase strings
@@ -245,6 +245,8 @@ def add_user_accounts(users: List[User], accounts: List[Account], config: dict) 
             usr.user,
             f"User Account for {usr.user}",
             cluster=config["defaults"]["cluster"],
+            qos=config["defaults"]["qos"],
+            defaultqos=config["defaults"]["defaultqos"]
         )
         accounts.append(acc)
 
@@ -256,16 +258,22 @@ def delete_unused_accounts(accs: List[Account], dry_run=False) -> None:
         delete_accounts(name, dry_run=dry_run)
 
 
-def create_or_modify_accounts(accs: List[Account], dry_run=False) -> None:
+def create_accounts(accs: List[Account], dry_run=False) -> None:
+    acc_map = {acc.name: acc for acc in accs}
+    sorted_acc_keys = topological_sort(acc_map)
+
+    prev_accounts = get_existing_accounts()
+
+    for name in sorted_acc_keys:
+        if not name in prev_accounts:
+            create_account(acc_map[name], dry_run=dry_run)
+
+def modify_accounts(accs: List[Account], dry_run=False) -> None:
     acc_map = {acc.name: acc for acc in accs}
     sorted_acc_keys = topological_sort(acc_map)
 
     prev_accounts = get_existing_accounts()
     updatable_keys = get_overlapping_accounts(prev_accounts, acc_map)
-
-    for name in sorted_acc_keys:
-        if not name in prev_accounts:
-            create_account(acc_map[name], dry_run=dry_run)
 
     for name in updatable_keys:
         modify_account(acc_map[name], prev_accounts[name], dry_run=dry_run)

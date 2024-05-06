@@ -1,16 +1,9 @@
 import logging
-from dataclasses import dataclass
 from typing import List
-from utils import execute_command
-from associations import Association
+from ..shell import execute_command
+from ..users.user import User
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class User:
-    user: str  # Unix name
-    defaultaccount: str
 
 
 def create_new_user(user: User, dry_run=False) -> None:
@@ -32,35 +25,6 @@ def get_existing_users() -> dict:
         values = user_record.split("|")
         user_dict[values[0]] = User(*values)
     return user_dict
-
-
-def get_default_account(
-    user_name: str, config: dict, unix_grp_map: dict, association_map: dict
-) -> str:
-    # 1. Priority: User specific defaults
-    user_defaults = config["defaults"].get("users")
-    if user_defaults and user_name in user_defaults:
-        return user_defaults.get(user_name)
-
-    # 2. Priority: Group-specific defaults
-    # groups = user_grp_map.get(user_name) or []
-    default_groups = config["defaults"].get("groups")
-    if default_groups:
-        for grp_name, grp_entry in default_groups.items():
-            if grp_name in unix_grp_map and user_name in unix_grp_map[grp_name].users:
-                if not grp_entry["account"]:
-                    raise Exception(
-                        f"Key 'account' is missing in defaults/groups/{grp_name}"
-                    )
-                return grp_entry["account"]
-
-    # # 3. Priority: use the account specified in the first declared association that contains this user
-    # for account in association_map.keys():
-    #     if user_name in association_map[account]:
-    #         return account
-
-    # Fallback defaultaccount=<username>
-    return user_name
 
 
 def modify_user_account(prev_user: User, user: User, dry_run=False) -> None:
@@ -97,19 +61,3 @@ def delete_unused_users(users: List[User], dry_run=False) -> None:
     for name in removable_users:
         delete_user(name, dry_run=dry_run)
 
-
-def get_users_from_associations(
-    associations: List[Association],
-    unix_grp_map: dict,
-    association_map: dict,
-    config: dict,
-) -> List[User]:
-    users = []
-
-    user_names = list(set(map(lambda x: x.user, associations)))
-    for usr_name in user_names:
-        default_account = get_default_account(
-            usr_name, config, unix_grp_map, association_map
-        )
-        users.append(User(usr_name, default_account))
-    return users

@@ -1,121 +1,20 @@
 import logging
-from dataclasses import dataclass, field
-from typing import List, Tuple
-from utils import execute_command
-from groups import groups_to_users
-from collections import defaultdict
+import utils
+from typing import List
+from shell import execute_command
+from association import Association, assoc_format, create_association_map
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_VALUES = {"fairshare": 1}
-
-
-@dataclass()
-class Association:
-    user: str
-    cluster: str
-    account: str
-    partition: str
-    fairshare: str = None
-    grpjobs: str = None
-    grptres: str = None
-    grpsubmit: str = None
-    grpwall: str = None
-    grptresmins: str = None
-    maxjobs: str = None
-    maxtres: str = None
-    maxtrespernode: str = None
-    maxsubmitjobs: str = None
-    maxwall: str = None
-    maxtresmins: str = None
-    qos: str = None
-    defaultqos: str = None
-    grptresrunmins: str = None
-    grpjobsaccrue: str = None
-    maxjobsaccrue: str = None
-
-    def get_hash(self) -> int:
-        hash_val = hash(
-            " ".join(
-                map(
-                    lambda x: str(getattr(self, x)),
-                    ["cluster", "account", "user", "partition"],
-                )
-            )
-        )
-        return hash_val
-
-    def __post_init__(self) -> None:
-        # Convert everything except Nones to lowercase strings
-        for k in Association.__dataclass_fields__.keys():
-            if not getattr(self, k) is None:
-                setattr(self, k, str(getattr(self, k)).lower())
-
-        # Fill in default values if necessary
-        for k, v in DEFAULT_VALUES.items():
-            if not getattr(self, k) or getattr(self, k) == "":
-                setattr(self, k, str(v))
-
-    def get_settings(self) -> Tuple[str, str]:
-        required_fields = ["cluster", "account", "user", "partition"]
-        field_keys = filter(
-            lambda x: x not in required_fields, self.__dataclass_fields__.keys()
-        )
-        field_keys = filter(lambda x: getattr(self, x) is not None, field_keys)
-        return list(map(lambda key: (key, getattr(self, key)), field_keys))
-
-
-def get_association_fields(exclude_fields=[]) -> List[str]:
-    field_keys = filter(
-        lambda x: x not in exclude_fields, Association.__dataclass_fields__.keys()
-    )
-    return list(field_keys)
-
-
-groups: List[str] = field(default_factory=list)
-assoc_format = ",".join(Association.__dataclass_fields__.keys())
-
-
-def user_associations_from_config(
-    config: dict, unix_group_map: dict
-) -> List[Association]:
-    defaults = config["defaults"]
-    assoc_section = config["associations"]
-    associations = []
-
-    if assoc_section is None:
-        return []
-
-    for _, assoc_entry in assoc_section.items():
-        groups = assoc_entry.get("groups") or []
-        users = groups_to_users(groups, unix_group_map)
-        values = [
-            assoc_entry.get(key) or defaults.get(key)
-            for key in get_association_fields(exclude_fields=["user"])
-        ]
-        for usr in users:
-            assoc = Association(usr.lower(), *values)
-            associations.append(assoc)
-    return associations
-
-
-def empty_str_to_none(arr: List) -> List:
-    return [i or None for i in arr]
 
 
 def get_existing_associations() -> List[Association]:
     cmd = f"$(which sacctmgr) -snorP show associations format={assoc_format}"
     records = execute_command(cmd, hide_log=True)
-    assocs = map(lambda rec: Association(*empty_str_to_none(rec.split("|"))), records)
+    assocs = map(
+        lambda rec: Association(*utils.empty_str_to_none(rec.split("|"))), records
+    )
     assocs = filter(lambda assoc: assoc.user and assoc.user != "root", assocs)
     return list(assocs)
-
-
-def get_with_defaults(obj: object, attr: str, default=""):
-    if hasattr(obj, attr):
-        return getattr(obj, attr)
-    else:
-        return default
 
 
 def create_association(assoc: Association, dry_run=False) -> None:
@@ -128,7 +27,7 @@ def create_association(assoc: Association, dry_run=False) -> None:
 
     assoc_settings = assoc.get_settings()
     for t in assoc_settings:
-        if getattr(assoc, t[0])!=None:
+        if getattr(assoc, t[0]) != None:
             cmd += f" {t[0]}={t[1]}"
     result = execute_command(cmd, dry_run=dry_run)
 
@@ -165,30 +64,6 @@ def modify_association(
             diff_counter += 1
     if diff_counter > 0:
         result = execute_command(cmd, dry_run=dry_run)
-
-
-def create_association_map(assocs: List[Association]) -> defaultdict:
-    def multi_dict(K, type) -> dict:
-        if K == 1:
-            return defaultdict(type)
-        else:
-            return defaultdict(lambda: multi_dict(K - 1, type))
-
-    assoc_map = multi_dict(4, str)
-    for assoc in assocs:
-        assoc_map[assoc.account][assoc.user][assoc.partition][assoc.cluster] = assoc
-    return assoc_map
-
-
-def check_illegal_association_overlaps(
-    assocs: List[Association], association_map: dict
-) -> None:
-    for a in assocs:
-        none_assoc = association_map[a.account][a.user]
-        if a.partition is not None and None in none_assoc:
-            raise Exception(
-                f"Found conflict in association specifications. You cannot define [Account={a.account}, User={a.user}, Partition={a.partition}] and in another association the same Account/User combination without partition. Specifying no partition already means that all partitions are included."
-            )
 
 
 def create_associations(

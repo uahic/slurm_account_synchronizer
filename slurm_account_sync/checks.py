@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from user import User
+from users.user import User
 
 logger = logging.getLogger(__name__)
 

@@ -37,6 +37,9 @@ class SLURMAccountSynchronizer:
         logger.info("[Create missing accounts]")
         _accounts.api.create_accounts(self.accounts, dry_run=dry_run)
 
+    # logger.info("[Create and modify users]")
+    # create_users(users, dry_run=dry_run)
+
         # 2. Create Associations
         logger.info("[Create associations]")
         existing_assocs = _associations.api.get_existing_associations()

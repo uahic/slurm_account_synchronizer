@@ -65,13 +65,13 @@ class SLURMAccountSynchronizer:
 
         # 6. Update existing Accounts
         logger.info("[modify existing accounts]")
-        _accounts.modify_accounts(self.accounts, dry_run=dry_run)
+        _accounts.api.modify_accounts(self.accounts, dry_run=dry_run)
 
 
 def from_config(config: dict) -> SLURMAccountSynchronizer:
     unix_groups = _unix_groups.get_unix_groups_from_config(config)
     associations = _associations.get_user_associations_from_config(config, unix_groups)
-    users = _users.get_users_from_associations(associations, unix_groups)
+    users = _users.get_users_from_associations(associations, unix_groups, config)
     accounts = _accounts.accounts_from_config(config)
     accounts.extend(_accounts.accounts_from_user_list(users, config))
 

@@ -22,4 +22,6 @@ def execute_command(cmd: List[str], dry_run=False, hide_log=False) -> str:
     stderr = result.stderr.decode()
     if stderr:
         raise Exception(stderr)
+    if result.returncode != 0:
+        raise Exception(f"Command failed with exit code {result.returncode}: {cmd}")
     return stdout

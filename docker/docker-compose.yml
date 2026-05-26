@@ -1,0 +1,26 @@
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: slurm_acct_db
+      MYSQL_USER: slurm
+      MYSQL_PASSWORD: slurm
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  slurm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    # Keep the container running so you can exec into it
+    command: ["/bin/bash", "-c", "/entrypoint.sh && tail -f /dev/null"]
+    volumes:
+      # Mount the source so edits are reflected without rebuilding
+      - ..:/opt/slurm_account_sync

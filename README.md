@@ -1,109 +1,145 @@
-# About
-This tool helps synchronizing users from UNIX user groups with SLURM 'associations', which are tuples of (user, account, partition, cluster) with SLURM's database. 
+# slurm-account-sync
 
+Keeps SLURM user associations in sync with UNIX group membership.
 
-# accounts.yml
-You need to define general accounts (SLURM's unit of accounting for statistics of resource usage etc.) and assign groups to them. The tool will then expand the group names by the information it gets by running ``` getent groups ``` and creates for each implicitly specified user the required SLURM associations. 
+SLURM requires explicit (user, account, partition, cluster) association tuples for every user and has no native mechanism to derive these from UNIX groups. This tool reads a YAML config, expands group memberships via `getent group`, and drives `sacctmgr` to create, update, and delete associations accordingly.
 
-### Group operations
-You can take any valid unix group and perform one or multiple of the following operations which are performed in the order as written:
-- UNION of multiple groups (just specifiy multiple groups to achieve this)
-- add_users to add single user names
-- exclude_users to remove single user names
-- whitelist to perform, given the result of the previous operations, a set-intersection with the specified groups. This is helpful to generally filter out smaller subset of a bigger group
+## Requirements
 
-Example:
+- Python 3.x
+- `sacctmgr` in `$PATH`
+- Read access to `/etc/group` (via `getent`)
+
+## Usage
+
+```sh
+# Dry run (default) — prints sacctmgr commands, executes nothing
+python main.py
+
+# Apply changes
+python main.py --execute
+
+# Use a different config file
+python main.py --file /etc/slurm/accounts.yml
 ```
-declared_groups: 
-  white_knights: 
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--execute` | `-e` | Execute `sacctmgr` commands. Without this flag the tool only logs what it would do. |
+| `--file PATH` | `-f` | Path to the YAML config file. Defaults to `accounts.yml` in the current directory. |
+
+## Configuration
+
+The config file is `accounts.yml` by default.
+
+### Top-level structure
+
+```yaml
+declared_groups:   # optional — define virtual groups from real UNIX groups
+defaults:          # required — cluster, org, and default account mappings
+accounts:          # required — SLURM account hierarchy
+associations:      # required — maps groups to accounts
+```
+
+### `declared_groups`
+
+Virtual groups built from real UNIX groups using set operations, applied in this order:
+
+1. Union of all listed `groups`
+2. Add individual users via `add_users`
+3. Remove individual users via `exclude_users`
+4. Intersect with `whitelist` groups
+
+```yaml
+declared_groups:
+  ml_approved:
     groups:
-      - ids
+      - ml_team
     whitelist:
-      - slurm_users
+      - cluster_users
     add_users:
-      - lanzelot
+      - serviceaccount
     exclude_users:
-      - darth_vader
-
+      - intern01
 ```
-The virtual group 'white_knights' can further be used in the associations section, as if it was a regular unix group.
 
-## Default Accounts
-Each specified user (either by name, by groups or set-operations on multiple groups) will get an user-account (accountname=username) and this will also be the defaultaccount (SLURM requires each user to have one) unless specified otherwise in the defaults section in the accounts.yml. o
+Virtual groups can be used anywhere a real UNIX group can.
 
-As one user can be contained in multiple associations/groups, this tool decides which account to use as a default in the following order according to the accounts.yml:
+### `defaults`
 
-1. defaults/users/<username> (if defined)
-2. defaults/groups/<group_name>/account/<account_name>. As there could be multiple matches, we simply choose the first one in the array where a specific user is member of (the group <group_name>). 
-
-## Full Specification by example
-
-```
-declared_groups: # Optional
-  my_virtual_group: # arbitrary name but can't be that of an existing unix group
-    groups:
-      - <group_name_1> # unix group(s)
-    whitelist:
-      - <group_name_2> # unix group(s)
-      - <group_name_3> 
-    add_users:
-      - <user_name_1>  # unix user(s)
-      - <user_name_2>
-    exclude_users:
-      - <user_name_3>  # unix user(s)
-    
-
+```yaml
 defaults:
-  cluster: ids-tks-gpu-cluster # Do not change! Required! Has to match entry inslurm.conf
-  organization: fzi # Required but arbitrary
-  groups: #Optional
-    my_virtual_group:  # unix group or virtual group
-      account: platsch # account as specified in the 'accounts' section
-  users: #Optional
-    <some_user_name>: # unix user name
-       account: tks
-
-accounts: # Required, be hierarchical by specifying a parent
-  cool_kids:
-    description: # Required
-    parent: 'root' # Optional, default is always 'root'
-    <... optional limits, see SLURMs documentation>
-  tks:
-    description: General TKS account
-    parent: cool_kids
-    fairshare: 1 # Optional
-    <... optional limits, see SLURMs documentation>
-  ids:
-    description: General IDS account
-    parent: cool_kids
-    fairshare: 5 # Optional
-  blubb: # has no parent => SLURM's top-level account 'root' is parent
-    description: General IDS account
-    fairshare: 3 # Optional
-  platsch:
-    description: Yeah...
-
-associations:
-  <some_association_name>: # arbitrary name, not used internally for anything
-    account: blubb  # account from 'accounts' section
-    groups:  # unix group(s) and/or virtual group(s)
-      - my_virtual_group # virtual group
-      - tks              # actual unix group
-    fairshare: 55 # optional, see SLURM documentation
-    <... optional limits, see SLURMs documentation>
-
+  cluster: my-cluster    # must match ClusterName in slurm.conf
+  organization: myorg
+  groups:                # optional: default account per group
+    ml_approved:
+      account: ml_group
+  users:                 # optional: default account per user (highest priority)
+    jdoe:
+      account: research
 ```
 
-# Usage
-By default the accounts.yml has to reside in the same folder as the main.py.
-If users have been added or removed on your machine, you need to re-run this script again to inform SLURM about the differences. 
+Default account resolution order per user:
+1. `defaults/users/<username>` if defined
+2. First matching entry in `defaults/groups` where the user is a member
+3. Falls back to a personal account named after the user
 
-run ``` python main.py ``` to do a dry run (which is the default)
+### `accounts`
 
-Options:
-- '-e' or '--execute' to let the scripts do the SLURM calls.
-- '-f' or '--file' to specify the full path of your config YAML file.
+Defines the SLURM account hierarchy. Accounts without a `parent` are placed under `root`.
 
+```yaml
+accounts:
+  research:
+    description: Top-level research account
+    fairshare: 10
+  ml_group:
+    description: Machine learning research
+    parent: research
+    fairshare: 5
+  bio_group:
+    description: Bioinformatics
+    parent: research
+    fairshare: 3
+```
 
-### LICENSE
-MS: To be discussed, this work has been started/created mainly (3/4 of the consumed time) as a private project and I'd like to open-source it under the Apache 2.0 license at some point. Similar tools do exist but I have not found one that has all the features as contained in this project.
+Supports all `sacctmgr` limit fields: `fairshare`, `qos`, `defaultqos`, `grptres`, `maxtres`, `maxwall`, etc.
+
+### `associations`
+
+Maps groups (real or virtual) to accounts with optional per-association limits.
+
+```yaml
+associations:
+  ml_gpu_assoc:
+    account: ml_group
+    groups:
+      - ml_approved
+    extra_users:
+      - serviceaccount
+    fairshare: 55
+```
+
+### Full example
+
+See [`example_accounts.yml`](example_accounts.yml).
+
+## Testing
+
+A self-contained test environment using Docker Compose is in [`docker/`](docker/). It runs MariaDB and a SLURM accounting daemon (`slurmdbd`) with four test users (`alice`, `bob`, `carol`, `dave`) pre-populated in `/etc/group`.
+
+```sh
+# Build and start
+docker compose -f docker/docker-compose.yml up --build -d
+
+# Run the test suite
+docker compose -f docker/docker-compose.yml exec slurm docker/run_tests.sh
+
+# Poke around manually
+docker compose -f docker/docker-compose.yml exec slurm bash
+
+# Tear down
+docker compose -f docker/docker-compose.yml down -v
+```
+
+The test suite covers dry-run safety, account creation, association correctness, and idempotency.

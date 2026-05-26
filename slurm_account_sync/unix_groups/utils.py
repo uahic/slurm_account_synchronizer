@@ -1,10 +1,10 @@
 from typing import List
 
 def merge_users(
-    group_users: List[str] = [],
-    extra_users: List[str] = [],
-    excluded_users: List[str] = [],
-    intersect_users: List[str] = [],
+    group_users: List[str] = None,
+    extra_users: List[str] = None,
+    excluded_users: List[str] = None,
+    intersect_users: List[str] = None,
 ) -> List[str]:
     user_set = set()
     if group_users:
@@ -12,9 +12,9 @@ def merge_users(
     if extra_users:
         user_set.update(extra_users)
     if excluded_users:
-        user_set.discard(*excluded_users)
+        user_set.difference_update(excluded_users)
     if intersect_users:
-        user_set.intersection(intersect_users)
+        user_set.intersection_update(intersect_users)
     return list(user_set)
 
 

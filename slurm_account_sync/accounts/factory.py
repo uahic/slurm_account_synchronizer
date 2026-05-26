@@ -29,7 +29,7 @@ def account_from_cfg_entry(entry: dict, defaults: dict) -> Account:
     return acc
 
 
-def accounts_from_user_list(users: List[User], config: dict) -> None:
+def accounts_from_user_list(users: List[User], config: dict) -> List[Account]:
     defaults = config["defaults"]
     accounts = []
     values = [

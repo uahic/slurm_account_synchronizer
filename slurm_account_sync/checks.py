@@ -56,5 +56,5 @@ def check_default_accounts_are_defined(config: dict) -> None:
         for usr_name, usr_entry in users.items():
             if not usr_entry["account"] in config["accounts"]:
                 raise Exception(
-                    f"The default account '{usr_entry['account']}' of user '{usr_name}' as specified in the defaults/groups section is not specified in the accounts section."
+                    f"The default account '{usr_entry['account']}' of user '{usr_name}' as specified in the defaults/users section is not specified in the accounts section."
                 )

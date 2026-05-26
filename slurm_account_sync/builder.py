@@ -1,10 +1,10 @@
 import logging
-import accounts as _accounts
-import associations as _associations
-import unix_groups as _unix_groups
-import users as _users
+from . import accounts as _accounts
+from . import associations as _associations
+from . import unix_groups as _unix_groups
+from . import users as _users
 
-from slurm_account_sync.checks import (
+from .checks import (
     check_default_accounts,
     check_association_entries,
     check_default_accounts_are_defined,

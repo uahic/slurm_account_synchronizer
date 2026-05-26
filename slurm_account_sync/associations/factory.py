@@ -1,16 +1,15 @@
 import logging
 from dataclasses import dataclass, field
 from typing import List, Tuple
-from shell import execute_command
+from ..shell import execute_command
 from ..unix_groups.utils import groups_to_users
 
-# from groups import groups_to_users
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
 
-from association import (
+from .association import (
     Association,
     get_association_fields,
 )

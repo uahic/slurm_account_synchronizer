@@ -1,7 +1,7 @@
-import api
-import utils
-import validation
-from unixgroup import UnixGroup
+from . import api
+from . import utils
+from . import validation
+from .unixgroup import UnixGroup
 
 
 def get_unix_groups_from_config(config: dict) -> dict:
@@ -24,5 +24,4 @@ def _add_declared_groups_from_config(unix_group_map: dict, config: dict) -> None
         added_users = grp_entry.get("add_users") or []
         excld_users = grp_entry.get("exclude_users") or []
         users = utils.merge_users(group_users, added_users, excld_users, white_users)
-        print(users)
         unix_group_map[new_grp] = UnixGroup(new_grp, -1, users)

@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from account import (
+from .account import (
     Account,
     get_account_fields,
 )

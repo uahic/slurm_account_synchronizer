@@ -1,1 +1,1 @@
-from builder import SLURMAccountSynchronizer, from_config
+from .builder import SLURMAccountSynchronizer, from_config

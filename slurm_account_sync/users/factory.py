@@ -1,7 +1,7 @@
 import logging
 from typing import List
-from associations import Association
-from user import User
+from ..associations.association import Association
+from .user import User
 
 logger = logging.getLogger(__name__)
 

@@ -1,2 +1,2 @@
-import api
-from factory import accounts_from_config, accounts_from_user_list
+from . import api
+from .factory import accounts_from_config, accounts_from_user_list

@@ -1,5 +1,5 @@
 from typing import List
-from association import Association
+from .association import Association
 
 
 def check_illegal_association_overlaps(

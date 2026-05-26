@@ -19,6 +19,7 @@ RUN dd if=/dev/urandom bs=1 count=1024 > /etc/munge/munge.key \
 # SLURM config
 COPY docker/slurmdbd.conf /etc/slurm/slurmdbd.conf
 RUN chown slurm:slurm /etc/slurm/slurmdbd.conf && chmod 600 /etc/slurm/slurmdbd.conf
+COPY docker/slurm.conf /etc/slurm/slurm.conf
 
 # Runtime dirs
 RUN mkdir -p /var/log/slurm /run/slurm \

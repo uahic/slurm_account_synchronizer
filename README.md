@@ -2,6 +2,44 @@
 
 Keeps SLURM user associations in sync with UNIX group membership.
 
+```
+  UNIX groups (/etc/group)        YAML config (accounts.yml)
+  ┌─────────────────────┐         ┌──────────────────────────┐
+  │ ml_team:  alice,bob │         │ declared_groups          │
+  │ bio_team: carol     │─────┐   │   ml_approved:           │
+  │ hpc_users: alice,   │     │   │     groups: [ml_team]    │
+  │           carol,dave│     │   │     whitelist: [hpc_users]│
+  └─────────────────────┘     │   │ accounts:                │
+           │ getent group      │   │   research > ml_group    │
+           │                  └──▶│ associations:            │
+           ▼                      │   ml_gpu_assoc:          │
+  ┌─────────────────────┐         │     account: ml_group    │
+  │  Group expansion    │◀────────│     groups: [ml_approved]│
+  │  + set operations   │         └──────────────────────────┘
+  │  (union/intersect/  │
+  │   add/exclude)      │
+  └────────┬────────────┘
+           │ resolved (user, account) pairs
+           ▼
+  ┌─────────────────────┐         ┌──────────────────────────┐
+  │   Diff engine       │         │  SLURM accounting DB     │
+  │                     │◀────────│  sacctmgr list assoc     │
+  │  desired vs current │         └──────────────────────────┘
+  └────────┬────────────┘
+           │
+     ┌─────┴──────┐
+     ▼            ▼
+  create       delete
+  assoc        assoc
+     │            │
+     └─────┬──────┘
+           ▼
+  ┌─────────────────────┐
+  │     sacctmgr        │   dry-run: only print commands
+  │  (--dry-run / live) │   --execute: apply to SLURM
+  └─────────────────────┘
+```
+
 SLURM requires explicit (user, account, partition, cluster) association tuples for every user and has no native mechanism to derive these from UNIX groups. This tool reads a YAML config, expands group memberships via `getent group`, and drives `sacctmgr` to create, update, and delete associations accordingly.
 
 The core of this repository was not generated via AI models, only the docker testing environment.

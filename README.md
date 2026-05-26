@@ -1,4 +1,4 @@
-# slurm-account-sync
+# Slurm Account Synchronizer
 
 Keeps SLURM user associations in sync with UNIX group membership.
 

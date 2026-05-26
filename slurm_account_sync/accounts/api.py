@@ -24,16 +24,14 @@ def create_account(account: Account, dry_run=False) -> None:
 def delete_accounts(name: str, dry_run=False) -> None:
     if name:
         cmd = f"$(which sacctmgr) -i delete account {name}"
-        if dry_run:
-            logger.info(cmd)
-        else:
-            result = shell.execute_command(cmd)
+        result = shell.execute_command(cmd, dry_run=dry_run)
+        if result:
             logger.debug(result)
 
 
 def modify_account(account: Account, prev_account: Account, dry_run=False) -> None:
     if account.cluster != prev_account.cluster:
-        logger.warn(
+        logger.warning(
             f"Slurm does not allow to modify the cluster attribute [before={prev_account.cluster}, requested={account.cluster}]. Ignoring."
         )
 

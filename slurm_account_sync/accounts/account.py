@@ -50,7 +50,9 @@ class Account:
             return False
         return self.__dict__ == obj.__dict__
 
-    def get_fields(self, exclude_fields=[]) -> Tuple[str, str]:
+    def get_fields(self, exclude_fields=None) -> Tuple[str, str]:
+        if exclude_fields is None:
+            exclude_fields = []
         field_keys = filter(
             lambda x: x not in exclude_fields, self.__dataclass_fields__.keys()
         )
@@ -68,7 +70,9 @@ class Account:
         return diff_arr
 
 
-def get_account_fields(exclude_fields=[]) -> List[str]:
+def get_account_fields(exclude_fields=None) -> List[str]:
+    if exclude_fields is None:
+        exclude_fields = []
     field_keys = filter(
         lambda x: x not in exclude_fields, Account.__dataclass_fields__.keys()
     )

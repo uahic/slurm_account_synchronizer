@@ -1,0 +1,6 @@
+# All users permitted on the cluster
+cluster_users:x:2000:alice,bob,carol,dave
+
+# Project groups
+ml_team:x:2001:alice,bob
+bio_team:x:2002:carol,dave

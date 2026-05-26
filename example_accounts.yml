@@ -1,70 +1,63 @@
 ---
-# The order in which limits are enforced is
-
-#     Partition QOS limit
-#     Job QOS limit
-#     User association
-#     Account association(s), ascending the hierarchy
-#     Root/Cluster association
-#     Partition limit
+# SLURM limit precedence (highest to lowest):
+#   Partition QOS → Job QOS → User association → Account association(s) → Root/Cluster → Partition
 
 declared_groups:
-  white_knights:
+  ml_approved:
     groups:
-      - ids
+      - ml_team       # base unix group
     whitelist:
-      - slurm_users
+      - cluster_users # only keep users also in this group
     # add_users:
+    #   - serviceaccount
     # exclude_users:
-    #   - schulze
+    #   - intern01
 
 defaults:
-  cluster: ids-tks-gpu-cluster # Do not change!
-  organization: fzi
+  cluster: my-cluster   # must match ClusterName in slurm.conf
+  organization: myorg
   groups:
-    # slurm_users:
-    #   account: blubb
-    white_knights:
-      account: platsch
+    ml_approved:
+      account: ml_group
   # users:
-  #  schulze:
-  #     accounts: tks
+  #   jdoe:
+  #     account: research
 
 accounts:
-  debug_account:
-    description: General IDS/TKS account
-    fairshare: 1
-  tks:
-    description: General IDS/TKS account
-    fairshare: 1
-  ids:
-    description: General IDS account
-  blubb:
-    description: General IDS account
-  platsch:
-    description: Yeah...
+  research:
+    description: Top-level research account
+    fairshare: 10
+  ml_group:
+    description: Machine learning research
+    parent: research
+    fairshare: 5
+  bio_group:
+    description: Bioinformatics
+    parent: research
+    fairshare: 3
+  staff:
+    description: Staff and administrators
 
 associations:
-  # debug_association:
-  #   account: debug_account
+  # debug_assoc:
+  #   account: research
   #   partition: debug
   #   groups:
-  #     - slurm_users
+  #     - cluster_users
   #   fairshare: 1
 
-  # tks_association:
-  #   account: tks
-  #   partition: debug
-  #   groups:
-  #     - slurm_users
-  #   fairshare: 1
-
-  blubb_assoc:
-    account: blubb
+  general_assoc:
+    account: research
     groups:
-      - slurm_users
+      - cluster_users
 
-  white_knight_assoc:
-    account: platsch
+  ml_gpu_assoc:
+    account: ml_group
     groups:
-      - white_knights
+      - ml_approved
+    fairshare: 55
+
+  bio_assoc:
+    account: bio_group
+    groups:
+      - bio_team

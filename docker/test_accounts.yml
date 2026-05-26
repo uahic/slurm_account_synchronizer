@@ -1,0 +1,43 @@
+declared_groups:
+  ml_approved:
+    groups:
+      - ml_team
+    whitelist:
+      - cluster_users
+
+defaults:
+  cluster: test-cluster
+  organization: testorg
+  groups:
+    ml_approved:
+      account: ml_group
+
+accounts:
+  research:
+    description: Top-level research account
+    fairshare: 10
+  ml_group:
+    description: Machine learning research
+    parent: research
+    fairshare: 5
+  bio_group:
+    description: Bioinformatics
+    parent: research
+    fairshare: 3
+
+associations:
+  general_assoc:
+    account: research
+    groups:
+      - cluster_users
+
+  ml_gpu_assoc:
+    account: ml_group
+    groups:
+      - ml_approved
+    fairshare: 55
+
+  bio_assoc:
+    account: bio_group
+    groups:
+      - bio_team

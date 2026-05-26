@@ -29,6 +29,7 @@ def get_user_associations_from_config(
     for _, assoc_entry in assoc_section.items():
         groups = assoc_entry.get("groups") or []
         users = groups_to_users(groups, unix_groups)
+        users.extend(assoc_entry.get("extra_users") or [])
         values = [
             assoc_entry.get(key) or defaults.get(key)
             for key in get_association_fields(exclude_fields=["user"])

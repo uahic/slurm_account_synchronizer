@@ -7,6 +7,7 @@ from unixgroup import UnixGroup
 def get_unix_groups_from_config(config: dict) -> dict:
     unix_group_map = api.get_unix_group_map()
     _add_declared_groups_from_config(unix_group_map, config)
+    return unix_group_map
 
 
 def _add_declared_groups_from_config(unix_group_map: dict, config: dict) -> None:

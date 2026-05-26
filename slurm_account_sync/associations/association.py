@@ -65,14 +65,13 @@ class Association:
         return list(map(lambda key: (key, getattr(self, key)), field_keys))
 
 
-def get_association_fields(exclude_fields=[]) -> List[str]:
+def get_association_fields(exclude_fields=None) -> List[str]:
+    if exclude_fields is None:
+        exclude_fields = []
     field_keys = filter(
         lambda x: x not in exclude_fields, Association.__dataclass_fields__.keys()
     )
     return list(field_keys)
-
-
-groups: List[str] = field(default_factory=list)
 assoc_format = ",".join(Association.__dataclass_fields__.keys())
 
 

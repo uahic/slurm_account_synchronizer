@@ -24,7 +24,7 @@ def get_default_account(user_name: str, config: dict, unix_grp_map: dict) -> str
     # 1. Priority: User specific defaults
     user_defaults = config["defaults"].get("users")
     if user_defaults and user_name in user_defaults:
-        return user_defaults.get(user_name)
+        return user_defaults[user_name]["account"]
 
     # 2. Priority: Group-specific defaults
     # groups = user_grp_map.get(user_name) or []

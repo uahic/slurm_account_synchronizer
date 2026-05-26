@@ -10,7 +10,7 @@ Keeps SLURM user associations in sync with UNIX group membership.
   │ hpc_users: alice,   │     │   │     groups: [ml_team]    │
   │           carol,dave│     │   │     whitelist: [hpc_users]│
   └─────────────────────┘     │   │ accounts:                │
-           │ getent group      │   │   research > ml_group    │
+           │ getent group     │   │   research > ml_group    │
            │                  └──▶│ associations:            │
            ▼                      │   ml_gpu_assoc:          │
   ┌─────────────────────┐         │     account: ml_group    │

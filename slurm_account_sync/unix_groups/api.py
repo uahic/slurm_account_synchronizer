@@ -1,5 +1,5 @@
 import logging
-from unixgroup import UnixGroup
+from .unixgroup import UnixGroup
 from .. import shell
 
 logger = logging.getLogger(__name__)

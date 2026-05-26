@@ -12,4 +12,7 @@ slurmdbd
 # Give slurmdbd a moment to initialize the schema
 sleep 3
 
+echo "[entrypoint] Registering cluster..."
+sacctmgr -i add cluster test-cluster
+
 echo "[entrypoint] Ready. SLURM accounting is available via sacctmgr."

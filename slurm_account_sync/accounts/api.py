@@ -1,7 +1,7 @@
 import logging
-import utils
+from . import utils
 from .. import shell
-from slurm_account_sync.accounts.account import (
+from .account import (
     Account,
     RESET_VALUES,
     get_account_fields,

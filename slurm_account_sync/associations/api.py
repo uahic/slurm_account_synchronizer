@@ -1,8 +1,8 @@
 import logging
-import utils
+from . import utils
 from typing import List
-from shell import execute_command
-from association import Association, assoc_format, create_association_map
+from ..shell import execute_command
+from .association import Association, assoc_format, create_association_map
 
 logger = logging.getLogger(__name__)
 

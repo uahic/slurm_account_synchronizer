@@ -4,6 +4,8 @@ Keeps SLURM user associations in sync with UNIX group membership.
 
 SLURM requires explicit (user, account, partition, cluster) association tuples for every user and has no native mechanism to derive these from UNIX groups. This tool reads a YAML config, expands group memberships via `getent group`, and drives `sacctmgr` to create, update, and delete associations accordingly.
 
+The core of this repository was not generated via AI models, only the docker testing environment.
+
 ## Requirements
 
 - Python 3.x
@@ -126,7 +128,9 @@ See [`example_accounts.yml`](example_accounts.yml).
 
 ## Testing
 
-A self-contained test environment using Docker Compose is in [`docker/`](docker/). It runs MariaDB and a SLURM accounting daemon (`slurmdbd`) with four test users (`alice`, `bob`, `carol`, `dave`) pre-populated in `/etc/group`.
+A self-contained test environment is in [`docker/`](docker/). It runs MariaDB and a SLURM accounting daemon (`slurmdbd`) with four test users (`alice`, `bob`, `carol`, `dave`) pre-populated in `/etc/group`.
+
+### Docker
 
 ```sh
 # Build and start
@@ -140,6 +144,30 @@ docker compose -f docker/docker-compose.yml exec slurm bash
 
 # Tear down
 docker compose -f docker/docker-compose.yml down -v
+```
+
+### Podman
+
+`podman-compose` is a separate package — install it first if needed (`pip install podman-compose` or via your distro).
+
+```sh
+# Build and start
+podman-compose -f docker/docker-compose.yml up --build -d
+
+# Run the test suite
+podman-compose -f docker/docker-compose.yml exec slurm docker/run_tests.sh
+
+# Poke around manually
+podman-compose -f docker/docker-compose.yml exec slurm bash
+
+# Tear down
+podman-compose -f docker/docker-compose.yml down -v
+```
+
+Alternatively, if you have Podman 4.4+ with the Docker-compatible CLI alias:
+
+```sh
+podman compose -f docker/docker-compose.yml up --build -d
 ```
 
 The test suite covers dry-run safety, account creation, association correctness, and idempotency.

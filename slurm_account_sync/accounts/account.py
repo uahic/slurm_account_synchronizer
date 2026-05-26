@@ -5,7 +5,7 @@ from typing import List, Tuple
 logger = logging.getLogger(__name__)
 
 RESET_VALUES = {"parent": "root", "qos": "", "organization": ""}
-DEFAULT_VALUES = {"parent": "root", "qos": "", "fairshare": 1}
+DEFAULT_VALUES = {"parent": "root", "fairshare": 1}
 
 
 @dataclass(frozen=False)
@@ -64,8 +64,10 @@ class Account:
         field_keys = get_account_fields(exclude_fields=["name", "cluster"])
         for key in field_keys:
             value = getattr(self, key)
+            if value is None:
+                continue  # not specified in config — leave existing value as-is
             other_value = getattr(other, key)
-            if value != other_value:
+            if value != (other_value or ""):
                 diff_arr.append((key, other_value, value))
         return diff_arr
 

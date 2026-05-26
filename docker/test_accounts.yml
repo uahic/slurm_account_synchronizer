@@ -11,6 +11,10 @@ defaults:
   groups:
     ml_approved:
       account: ml_group
+    bio_team:
+      account: bio_group
+    cluster_users:
+      account: research
 
 accounts:
   research:
